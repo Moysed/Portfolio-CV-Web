@@ -182,16 +182,55 @@ document.addEventListener('DOMContentLoaded', (event) => {
     var name = document.getElementById('name').value;
     var email = document.getElementById('email').value;
     var message = document.getElementById('message').value;
-    var mailtoLink = 'mailto:nongalmondza12@gmail.com'
-      + '?subject=New Contact Form Submission'
-      + '&body=Name: ' + encodeURIComponent(name)
-      + '%0AEmail: ' + encodeURIComponent(email)
-      + '%0AMessage: ' + encodeURIComponent(message);
-    
-    window.location.href = mailtoLink;
+  
+    // Basic form validation
+    if (!name || !email || !message) {
+      alert('Please fill in all fields');
+      return;
+    }
+  
+    // Email validation
+    var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      alert('Please enter a valid email address');
+      return;
+    }
+  
+    // Disable the submit button and show loading state
+    var submitButton = document.querySelector('#contact-form button[type="submit"]');
+    submitButton.disabled = true;
+    submitButton.textContent = 'Sending...';
+  
+    // Send the email using an AJAX call to your server
+    fetch('/send-email', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ name, email, message }),
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        alert('Thank you for your message. I will get back to you soon!');
+        document.getElementById('contact-form').reset();
+      } else {
+        throw new Error('Failed to send email');
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('Sorry, there was an error sending your message. Please try again later.');
+    })
+    .finally(() => {
+      // Re-enable the submit button and restore its text
+      submitButton.disabled = false;
+      submitButton.textContent = 'Send Message';
+    });
+  
     return false;
   }
-
+  
   var form = document.getElementById('contact-form');
   if (form) {
     form.addEventListener('submit', function(event) {
